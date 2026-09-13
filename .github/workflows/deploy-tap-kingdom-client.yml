@@ -1,0 +1,63 @@
+name: Deploy Tap Kingdom client to GitHub Pages
+
+# Builds tap-kingdom/client and publishes it as this repo's GitHub Pages
+# site. This only deploys the client (the actual Mini App screen) — the
+# bot (tap-kingdom/bot) is a persistent Node server and cannot run on
+# Pages; it needs real server hosting (see tap-kingdom/bot's own README
+# notes) and is not part of this workflow.
+#
+# One-time setup required in the GitHub UI (cannot be done from a workflow
+# file): Settings → Pages → Source → "GitHub Actions". Until that's set,
+# this workflow will build successfully but the deploy step will have
+# nothing to activate.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tap-kingdom/client/**"
+      - ".github/workflows/deploy-tap-kingdom-client.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: tap-kingdom/client/package-lock.json
+
+      - name: Install dependencies
+        working-directory: tap-kingdom/client
+        run: npm ci
+
+      - name: Build
+        working-directory: tap-kingdom/client
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: tap-kingdom/client/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

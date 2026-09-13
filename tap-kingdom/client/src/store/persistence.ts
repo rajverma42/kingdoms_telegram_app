@@ -54,6 +54,11 @@ export interface SaveData {
   processedChargeIds: string[];
   /** Item ids owned for display purposes only (e.g. "Owned" on a one-time cosmetic in the Shop). Does not gate fulfillment. */
   ownedCosmeticItemIds: string[];
+  /** Which owned hero (if any) currently wears the "exclusive_skin" / "premium_weapon" cosmetic — only one hero can wear each at a time, reassignable freely once owned. */
+  equippedSkinHeroKey: string | null;
+  equippedWeaponHeroKey: string | null;
+  /** Whether the owned "premium_kingdom_skin" theme is currently applied — a purely visual toggle, on by default once purchased. */
+  kingdomSkinActive: boolean;
   missionState: {
     day: string; // YYYY-MM-DD the current mission set was rolled for
     baseline: Partial<Record<MissionMetric, number>>;
@@ -90,6 +95,9 @@ export function createDefaultSave(language: "en" | "hi" = "en"): SaveData {
     troops: {},
     processedChargeIds: [],
     ownedCosmeticItemIds: [],
+    equippedSkinHeroKey: null,
+    equippedWeaponHeroKey: null,
+    kingdomSkinActive: false,
     missionState: { day: "", baseline: {}, claimed: [] },
     achievementsClaimed: [],
     dailyReward: { lastClaimDay: null, streak: 0 },
@@ -124,11 +132,19 @@ function isValidSave(data: unknown): data is SaveData {
   return true;
 }
 
-/** Runs any needed migrations. Only version 1 exists today; this is the seam for future save-format changes. */
+/**
+ * Runs any needed migrations. Backfills defaults for any top-level field
+ * missing from an older save (object spread only overwrites keys `data`
+ * actually has, so a field added after that save was written survives with
+ * its default) — this matters even when `data.version` already equals
+ * SAVE_VERSION, since a field can be added without bumping the version.
+ * Only version 1 exists today; breaking migrations get their own branch below.
+ */
 function migrate(data: SaveData): SaveData {
-  if (data.version === SAVE_VERSION) return data;
-  // Future migrations go here, e.g.: if (data.version === 1) { ... return migrated; }
-  return { ...createDefaultSave(), ...data, version: SAVE_VERSION };
+  const withDefaults = { ...createDefaultSave(), ...data };
+  if (data.version === SAVE_VERSION) return withDefaults;
+  // Future breaking migrations go here, e.g.: if (data.version === 1) { ... }
+  return { ...withDefaults, version: SAVE_VERSION };
 }
 
 export function loadSave(): { save: SaveData; recovered: boolean } {

@@ -18,15 +18,12 @@ import {
   getFreeChestReward,
 } from "../game/logic/economy";
 import { applyShopItemEffect } from "../game/logic/premiumFulfillment";
-import { SHOP_ITEMS } from "../game/data/shopItems";
 
 /** One fulfilled Stars purchase as reported by the bot's /api/entitlements. */
 export interface PurchaseRecord {
   itemId: string;
   chargeId: string;
 }
-
-const COSMETIC_CATEGORIES = new Set(["SKINS", "WEAPONS"]);
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
@@ -58,6 +55,9 @@ interface GameState {
   claimAchievement: (id: string) => { ok: boolean; error?: string };
   applyFulfilledPurchases: (records: PurchaseRecord[]) => void;
   useHeroUpgradeToken: (heroKey: string) => { ok: boolean; error?: string };
+  equipHeroSkin: (heroKey: string | null) => { ok: boolean; error?: string };
+  equipHeroWeapon: (heroKey: string | null) => { ok: boolean; error?: string };
+  setKingdomSkinActive: (active: boolean) => { ok: boolean; error?: string };
   updateSettings: (patch: Partial<SaveData["settings"]>) => void;
   completeTutorial: () => void;
   resetProgress: () => void;
@@ -434,13 +434,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     let changed = false;
     for (const { itemId, chargeId } of records) {
       if (save.processedChargeIds.includes(chargeId)) continue;
-      applyShopItemEffect(save, itemId);
+      applyShopItemEffect(save, itemId); // owns all state changes, including marking cosmetics owned
       save.processedChargeIds.push(chargeId);
-
-      const item = SHOP_ITEMS.find((i) => i.id === itemId);
-      if (item && COSMETIC_CATEGORIES.has(item.category) && !save.ownedCosmeticItemIds.includes(itemId)) {
-        save.ownedCosmeticItemIds.push(itemId);
-      }
       changed = true;
     }
     if (changed) {
@@ -460,6 +455,38 @@ export const useGameStore = create<GameState>((set, get) => ({
     save.heroUpgradeTokens -= 1;
     state.level = Math.min(cap, state.level + 10);
 
+    persistSave(save);
+    set({ save });
+    return { ok: true };
+  },
+
+  equipHeroSkin: (heroKey) => {
+    const save = structuredClone(get().save);
+    if (!save.ownedCosmeticItemIds.includes("exclusive_skin")) return { ok: false, error: "NOT_OWNED" };
+    if (heroKey && !save.heroes[heroKey]?.unlocked) return { ok: false, error: "HERO_NOT_OWNED" };
+
+    save.equippedSkinHeroKey = heroKey;
+    persistSave(save);
+    set({ save });
+    return { ok: true };
+  },
+
+  equipHeroWeapon: (heroKey) => {
+    const save = structuredClone(get().save);
+    if (!save.ownedCosmeticItemIds.includes("premium_weapon")) return { ok: false, error: "NOT_OWNED" };
+    if (heroKey && !save.heroes[heroKey]?.unlocked) return { ok: false, error: "HERO_NOT_OWNED" };
+
+    save.equippedWeaponHeroKey = heroKey;
+    persistSave(save);
+    set({ save });
+    return { ok: true };
+  },
+
+  setKingdomSkinActive: (active) => {
+    const save = structuredClone(get().save);
+    if (!save.ownedCosmeticItemIds.includes("premium_kingdom_skin")) return { ok: false, error: "NOT_OWNED" };
+
+    save.kingdomSkinActive = active;
     persistSave(save);
     set({ save });
     return { ok: true };

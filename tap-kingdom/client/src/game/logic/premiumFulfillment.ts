@@ -23,13 +23,20 @@ function grantPremiumChest(save: SaveData, tier: "small" | "epic"): void {
   save.stats.chestsOpened += 1;
 }
 
+function markCosmeticOwned(save: SaveData, itemId: string): void {
+  if (!save.ownedCosmeticItemIds.includes(itemId)) {
+    save.ownedCosmeticItemIds.push(itemId);
+  }
+}
+
 /**
  * Applies the actual in-game effect of a fulfilled Stars purchase. Called
- * exactly once per item id — the caller (gameStore.applyFulfilledPurchases)
- * guards against re-applying an id already present in ownedPremiumItems.
- * Cosmetic-only items (weapons, skins) need no effect here beyond the
- * ownership flag the caller records; this function only exists for items
- * with a gameplay-facing unlock.
+ * exactly once per charge id — the caller (gameStore.applyFulfilledPurchases)
+ * guards against re-applying a charge id already present in
+ * processedChargeIds. This function owns all of a purchase's state changes,
+ * including marking cosmetics owned (rather than splitting that bookkeeping
+ * into the caller), so a bundle can grant several cosmetics at once without
+ * the caller needing to know a bundle's contents.
  */
 export function applyShopItemEffect(save: SaveData, itemId: string): void {
   switch (itemId) {
@@ -54,11 +61,18 @@ export function applyShopItemEffect(save: SaveData, itemId: string): void {
     case "ultimate_bundle":
       unlockRandomHero(save, ["LEGENDARY", "MYTHIC"]);
       grantPremiumChest(save, "epic");
+      markCosmeticOwned(save, "premium_weapon");
+      markCosmeticOwned(save, "exclusive_skin");
       break;
     case "premium_weapon":
+      markCosmeticOwned(save, itemId);
+      break;
     case "exclusive_skin":
+      markCosmeticOwned(save, itemId);
+      break;
     case "premium_kingdom_skin":
-      // Cosmetic-only — ownership alone (recorded by the caller) is the entire effect.
+      markCosmeticOwned(save, itemId);
+      save.kingdomSkinActive = true; // on by default once purchased; togglable in Settings
       break;
     default:
       // Unknown id: nothing to apply. The bot is the source of truth for

@@ -33,6 +33,20 @@ export default function App() {
     initTelegram();
   }, []);
 
+  // The "Twilight Spire" kingdom skin re-themes the whole app by overriding
+  // CSS custom properties (see global.css's [data-kingdom-skin] rule) — that
+  // only works if the attribute lives on `body` itself. `body` is this
+  // component's ancestor (body > #root > App), not its descendant, so a
+  // custom property override set anywhere inside App's own render tree can
+  // never flow back up to affect body's own `background` rule.
+  useEffect(() => {
+    if (save.kingdomSkinActive) {
+      document.body.setAttribute("data-kingdom-skin", "true");
+    } else {
+      document.body.removeAttribute("data-kingdom-skin");
+    }
+  }, [save.kingdomSkinActive]);
+
   // Keep energy regen and any timed building upgrades in sync while the app is open.
   useEffect(() => {
     tick();

@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { authRouter } from "./routes/auth.js";
 import { kingdomRouter } from "./routes/kingdom.js";
 import { battleRouter } from "./routes/battle.js";
+import { heroRouter } from "./routes/hero.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -30,6 +31,7 @@ app.get("/api/health", (_req, res) => res.json({ success: true, data: { status: 
 app.use("/api/auth", authRouter);
 app.use("/api/kingdom", kingdomRouter);
 app.use("/api/battle", battleRouter);
+app.use("/api/hero", heroRouter);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "Route not found." } });

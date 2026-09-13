@@ -1,0 +1,23 @@
+{
+  "app.loading": "Loading your kingdom...",
+  "nav.home": "Home",
+  "nav.kingdom": "Kingdom",
+  "nav.battle": "Battle",
+  "home.play": "Play",
+  "home.kingdomPower": "Kingdom Power",
+  "kingdom.title": "Your Kingdom",
+  "kingdom.upgrade": "Upgrade",
+  "kingdom.upgrading": "Upgrading...",
+  "kingdom.level": "Lv. {level}",
+  "kingdom.cost": "{cost} gold",
+  "battle.title": "Battles",
+  "battle.energyCost": "{cost} energy",
+  "battle.fight": "Fight",
+  "battle.resolving": "Resolving battle...",
+  "battle.win": "Victory!",
+  "battle.lose": "Defeat",
+  "battle.rewards": "+{gold} gold, +{gems} gems, +{xp} XP",
+  "error.generic": "Something went wrong. Please try again.",
+  "error.insufficientEnergy": "Not enough energy. It regenerates over time.",
+  "error.insufficientGold": "Not enough gold."
+}

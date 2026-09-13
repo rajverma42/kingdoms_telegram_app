@@ -1,0 +1,224 @@
+// Kingdom Rush: Telegram Battle
+// Core Prisma schema — Phase 1-5 slice.
+// Additional models (Clan, Referral, BattlePass, Ads, Transactions, etc.)
+// are documented in /docs/FULL_SCHEMA_PLAN.md and get added in later phases.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Player ----------
+
+model User {
+  id            String   @id @default(uuid())
+  telegramId    BigInt   @unique
+  username      String?
+  firstName     String?
+  lastName      String?
+  languageCode  String?  // telegram-reported locale, e.g. "en", "hi"
+  preferredLang String   @default("en") // user-selected in-game language
+  photoUrl      String?
+
+  level         Int      @default(1)
+  xp            Int      @default(0)
+
+  riskScore     Int      @default(0) // anti-cheat: rises on suspicious events
+  isRestricted  Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSeenAt    DateTime @default(now())
+
+  kingdom       Kingdom?
+  heroes        HeroInventory[]
+  troops        ArmyUnit[]
+  battles       Battle[]
+  auditEntries  AuditLog[]
+
+  @@index([telegramId])
+}
+
+// ---------- Kingdom & Resources ----------
+
+model Kingdom {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String   @default("New Kingdom")
+  level     Int      @default(1)
+  power     Int      @default(0) // recomputed server-side from buildings/heroes/troops
+
+  // Resources — server-authoritative. Never trust client-submitted values.
+  gold      BigInt   @default(500)
+  gems      BigInt   @default(50)
+  energy    Int      @default(50)
+  energyMax Int      @default(50)
+  energyUpdatedAt DateTime @default(now()) // used to compute regen server-side
+
+  buildings Building[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BuildingType {
+  CASTLE
+  BARRACKS
+  ARCHER_TOWER
+  MAGE_TOWER
+  BLACKSMITH
+  GOLD_MINE
+  FARM
+  GEM_MINE
+  HERO_HALL
+  TRAINING_GROUND
+  WALL
+  WATCH_TOWER
+}
+
+model Building {
+  id         String       @id @default(uuid())
+  kingdomId  String
+  kingdom    Kingdom      @relation(fields: [kingdomId], references: [id], onDelete: Cascade)
+
+  type       BuildingType
+  level      Int          @default(1)
+
+  // If upgrade is in progress, finishesAt is set; null otherwise.
+  upgradeStartedAt  DateTime?
+  upgradeFinishesAt DateTime?
+
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([kingdomId, type])
+}
+
+// ---------- Heroes ----------
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+model Hero {
+  id          String   @id @default(uuid())
+  key         String   @unique // stable slug, e.g. "aric_flame_knight"
+  name        String
+  rarity      Rarity
+  baseAttack  Int
+  baseDefense Int
+  baseHealth  Int
+  baseSpeed   Int
+  skillKey    String   // references a skill definition in game config
+  ultimateKey String
+
+  inventories HeroInventory[]
+}
+
+model HeroInventory {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  heroId     String
+  hero       Hero     @relation(fields: [heroId], references: [id])
+
+  level      Int      @default(1)
+  rank       Int      @default(1) // "star" rank
+  equippedIn Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, heroId])
+}
+
+// ---------- Army ----------
+
+enum TroopType {
+  SWORDSMAN
+  ARCHER
+  SPEARMAN
+  KNIGHT
+  MAGE
+  HEALER
+  GIANT
+  DRAGON_RIDER
+}
+
+model ArmyUnit {
+  id       String    @id @default(uuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type     TroopType
+  level    Int       @default(1)
+  quantity Int       @default(0)
+
+  @@unique([userId, type])
+}
+
+// ---------- Battles ----------
+
+enum BattleType {
+  NORMAL
+  ELITE
+  BOSS
+  KINGDOM
+  DAILY_CHALLENGE
+}
+
+enum BattleStatus {
+  PENDING   // started, awaiting completion/resolution
+  RESOLVED
+  EXPIRED
+}
+
+model Battle {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        BattleType
+  stageId     String       // which enemy/stage config was used
+
+  status      BattleStatus @default(PENDING)
+  seed        String       // server-generated seed used to resolve the battle deterministically
+  energyCost  Int
+
+  outcome     String?      // "WIN" | "LOSE", set on resolution
+  rewardGold  BigInt?
+  rewardGems  BigInt?
+  rewardXp    Int?
+
+  startedAt   DateTime     @default(now())
+  resolvedAt  DateTime?
+
+  @@index([userId, status])
+}
+
+// ---------- Admin / Config / Audit ----------
+
+model GameSetting {
+  key       String   @id // e.g. "building.CASTLE.baseCost"
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String?  // admin user id, or system
+  user      User?    @relation(fields: [actorId], references: [id])
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+}

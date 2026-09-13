@@ -1,5 +1,7 @@
 # Kingdom Rush: Telegram Battle
 
+> This repository holds two separate Telegram Mini App games. This README covers **Kingdom Rush: Telegram Battle** (below); the second game, **Tap Kingdom** — a tap-to-earn kingdom game with a Telegram Stars shop — lives in [`tap-kingdom/`](./tap-kingdom/README.md) with its own client, bot, and README.
+
 A Telegram Mini App kingdom-strategy/battle game. This repo is the **Phase 1–6 core slice**: a real, running vertical foundation (auth → kingdom → heroes → battle) that the remaining phases build on top of. Nothing here is a fake button — every screen calls a real, server-authoritative endpoint.
 
 ## What's implemented in this slice

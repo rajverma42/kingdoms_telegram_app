@@ -6,3 +6,6 @@ build/
 *.log
 *.tsbuildinfo
 .DS_Store
+
+# Tap Kingdom bot's local Stars-purchase ledger — runtime data, never committed.
+tap-kingdom/bot/data/*.json

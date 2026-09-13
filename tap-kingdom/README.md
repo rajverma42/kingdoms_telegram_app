@@ -103,6 +103,35 @@ Telegram Mini Apps require HTTPS. Tunnel the Vite dev server (e.g.
 payments only work for a real bot talking to real Telegram servers — they
 cannot be exercised from a plain browser tab.
 
+## Deployment
+
+**Client.** `.github/workflows/deploy-tap-kingdom-client.yml` (repo root)
+builds `tap-kingdom/client` and publishes it to this repo's GitHub Pages
+site on every push to `main` that touches `tap-kingdom/client/**`, or via
+a manual "Run workflow" dispatch. One manual, one-time step is required
+first and can't be done from a workflow file: in the repo's **Settings →
+Pages**, set **Source** to **"GitHub Actions"** (it may currently be set
+to "Deploy from a branch", which is what serves the plain README instead
+of the app). Once that's switched, the built client is live at
+`https://<your-github-username>.github.io/kingdoms_telegram_app/` —
+`vite.config.ts`'s `base` is already set to that path for production
+builds (and stays `/` for local `npm run dev`, so local development is
+unaffected).
+
+Remember that a Telegram Mini App is meant to be opened inside Telegram,
+not browsed to directly — visiting the Pages URL in a plain browser tab
+will load the app shell, but Telegram-specific behavior (`initData`,
+payments, haptics) won't be present outside a real Telegram client. Set
+this URL as `MINI_APP_URL` in the bot's `.env` once it's live.
+
+**Bot.** GitHub Pages only serves static files — it cannot run the bot,
+which is a persistent Node process handling Telegram's webhook/polling
+updates and the Stars payment endpoints. It needs real server hosting
+(e.g. Render, Railway, Fly.io, or any VPS you already run) with the
+environment variables from `bot/.env.example` configured there. There is
+no workflow in this repo for that yet, since it depends on which host you
+choose.
+
 ## What's implemented
 
 - Tap-to-earn with a client-side cooldown + burst limit (not server

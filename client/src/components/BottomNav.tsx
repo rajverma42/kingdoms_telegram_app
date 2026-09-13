@@ -1,7 +1,7 @@
 import { useTranslation } from "../hooks/useTranslation";
 import { haptic } from "../telegram/telegramSdk";
 
-export type Screen = "home" | "kingdom" | "battle";
+export type Screen = "home" | "kingdom" | "battle" | "heroes";
 
 interface Props {
   active: Screen;
@@ -13,6 +13,7 @@ export function BottomNav({ active, onChange }: Props) {
 
   const items: { key: Screen; label: string; glyph: string }[] = [
     { key: "home", label: t("nav.home"), glyph: "◆" },
+    { key: "heroes", label: t("nav.heroes"), glyph: "♛" },
     { key: "battle", label: t("nav.battle"), glyph: "⚔" },
     { key: "kingdom", label: t("nav.kingdom"), glyph: "▲" },
   ];

@@ -5,6 +5,7 @@ import { ResourceBar } from "./components/ResourceBar";
 import { Home } from "./pages/Home";
 import { Kingdom } from "./pages/Kingdom";
 import { Battle } from "./pages/Battle";
+import { Heroes } from "./pages/Heroes";
 import { useTranslation, setAppLanguage } from "./hooks/useTranslation";
 
 export default function App() {
@@ -65,6 +66,7 @@ export default function App() {
         {screen === "home" && <Home kingdom={kingdom} onNavigate={setScreen} />}
         {screen === "kingdom" && <Kingdom kingdom={kingdom} onKingdomChange={setKingdom} />}
         {screen === "battle" && <Battle kingdom={kingdom} onKingdomChange={setKingdom} />}
+        {screen === "heroes" && <Heroes kingdom={kingdom} onKingdomChange={setKingdom} />}
       </div>
       <BottomNav active={screen} onChange={setScreen} />
     </div>

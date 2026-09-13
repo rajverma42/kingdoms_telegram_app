@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma.js";
-import { ENERGY_REGEN_MINUTES_PER_POINT, getBuildingLevelConfig } from "../config/gameConfig.js";
+import { ENERGY_REGEN_MINUTES_PER_POINT, computeHeroPower, getBuildingLevelConfig } from "../config/gameConfig.js";
 import { badRequest, notEnoughResource, notFound } from "../utils/errors.js";
 import type { BuildingType } from "@prisma/client";
 
@@ -130,7 +130,7 @@ export async function resolveFinishedUpgrades(userId: string) {
   return finished.length;
 }
 
-/** Recomputes a simple Kingdom Power score from building levels (heroes/troops added in later phases). */
+/** Recomputes Kingdom Power from building levels plus equipped heroes (troops added in a later phase). */
 export async function recomputeKingdomPower(kingdomId: string) {
   const kingdom = await prisma.kingdom.findUnique({
     where: { id: kingdomId },
@@ -138,7 +138,16 @@ export async function recomputeKingdomPower(kingdomId: string) {
   });
   if (!kingdom) throw notFound("Kingdom");
 
-  const power = kingdom.buildings.reduce((sum, b) => sum + b.level * 25, 0);
+  const equippedHeroes = await prisma.heroInventory.findMany({
+    where: { userId: kingdom.userId, equipSlot: { not: null } },
+    include: { hero: true },
+  });
 
-  return prisma.kingdom.update({ where: { id: kingdomId }, data: { power } });
+  const buildingPower = kingdom.buildings.reduce((sum, b) => sum + b.level * 25, 0);
+  const heroPower = equippedHeroes.reduce(
+    (sum, inv) => sum + computeHeroPower(inv.hero, inv.level, inv.rank),
+    0
+  );
+
+  return prisma.kingdom.update({ where: { id: kingdomId }, data: { power: buildingPower + heroPower } });
 }

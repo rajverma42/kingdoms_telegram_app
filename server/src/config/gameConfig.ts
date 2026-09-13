@@ -1,4 +1,4 @@
-import type { BuildingType } from "@prisma/client";
+import type { BuildingType, Rarity } from "@prisma/client";
 
 /**
  * Default economy values. In production these are loaded from the
@@ -63,4 +63,61 @@ export const BATTLE_STAGES: BattleStageConfig[] = [
 
 export function getStageConfig(stageId: string): BattleStageConfig | undefined {
   return BATTLE_STAGES.find((s) => s.id === stageId);
+}
+
+// ---------- Heroes (Phase 6) ----------
+
+/** Number of slots in a player's active battle team. Only equipped heroes contribute to Kingdom Power. */
+export const HERO_TEAM_SIZE = 5;
+
+/** A hero's level cannot exceed `rank * HERO_LEVEL_CAP_PER_RANK` until it is ranked up. */
+export const HERO_LEVEL_CAP_PER_RANK = 10;
+
+export interface HeroRarityConfig {
+  recruitGoldCost: number;
+  maxRank: number;
+  levelCostBase: number;
+  rankCostGoldBase: number;
+  rankCostGemsBase: number;
+}
+
+export const HERO_RARITY_CONFIG: Record<Rarity, HeroRarityConfig> = {
+  COMMON:    { recruitGoldCost: 300,   maxRank: 3, levelCostBase: 20,  rankCostGoldBase: 400,  rankCostGemsBase: 0 },
+  RARE:      { recruitGoldCost: 800,   maxRank: 4, levelCostBase: 35,  rankCostGoldBase: 900,  rankCostGemsBase: 5 },
+  EPIC:      { recruitGoldCost: 2000,  maxRank: 5, levelCostBase: 55,  rankCostGoldBase: 1800, rankCostGemsBase: 12 },
+  LEGENDARY: { recruitGoldCost: 5000,  maxRank: 6, levelCostBase: 80,  rankCostGoldBase: 3500, rankCostGemsBase: 25 },
+  MYTHIC:    { recruitGoldCost: 12000, maxRank: 7, levelCostBase: 120, rankCostGoldBase: 7000, rankCostGemsBase: 50 },
+};
+
+export function getHeroLevelCap(rank: number): number {
+  return rank * HERO_LEVEL_CAP_PER_RANK;
+}
+
+export function getHeroLevelUpCost(rarity: Rarity, currentLevel: number): number {
+  const { levelCostBase } = HERO_RARITY_CONFIG[rarity];
+  return Math.round(levelCostBase * Math.pow(1.12, currentLevel - 1));
+}
+
+export function getHeroRankUpCost(rarity: Rarity, currentRank: number): { gold: number; gems: number } {
+  const { rankCostGoldBase, rankCostGemsBase } = HERO_RARITY_CONFIG[rarity];
+  return {
+    gold: Math.round(rankCostGoldBase * Math.pow(1.5, currentRank - 1)),
+    gems: Math.round(rankCostGemsBase * Math.pow(1.4, currentRank - 1)),
+  };
+}
+
+/**
+ * A hero's contribution to Kingdom Power, used only for heroes in the active
+ * team — matches the "server computes power, client can't influence battle
+ * odds" property already used for buildings in kingdomService.
+ */
+export function computeHeroPower(
+  hero: { baseAttack: number; baseDefense: number; baseHealth: number; baseSpeed: number },
+  level: number,
+  rank: number
+): number {
+  const raw = hero.baseAttack + hero.baseDefense + hero.baseSpeed + hero.baseHealth / 10;
+  const levelMult = 1 + (level - 1) * 0.08;
+  const rankMult = 1 + (rank - 1) * 0.15;
+  return Math.round(raw * levelMult * rankMult);
 }

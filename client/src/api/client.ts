@@ -55,6 +55,32 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ battleId }),
     }),
+  getHeroes: () => request<RosterDto>("/hero"),
+  recruitHero: (heroKey: string) =>
+    request<{ recruited: boolean }>("/hero/recruit", {
+      method: "POST",
+      body: JSON.stringify({ heroKey }),
+    }),
+  levelUpHero: (heroKey: string) =>
+    request<{ level: number }>("/hero/level-up", {
+      method: "POST",
+      body: JSON.stringify({ heroKey }),
+    }),
+  rankUpHero: (heroKey: string) =>
+    request<{ rank: number }>("/hero/rank-up", {
+      method: "POST",
+      body: JSON.stringify({ heroKey }),
+    }),
+  equipHero: (heroKey: string, slot: number) =>
+    request<{ equipped: boolean }>("/hero/equip", {
+      method: "POST",
+      body: JSON.stringify({ heroKey, slot }),
+    }),
+  unequipHero: (heroKey: string) =>
+    request<{ equipped: boolean }>("/hero/unequip", {
+      method: "POST",
+      body: JSON.stringify({ heroKey }),
+    }),
 };
 
 export interface BuildingDto {
@@ -95,4 +121,32 @@ export interface BattleResultDto {
   rewardGems: number;
   rewardXp: number;
   userXp: number;
+}
+
+export type HeroDto =
+  | {
+      key: string;
+      name: string;
+      rarity: string;
+      owned: false;
+      recruitGoldCost: number;
+    }
+  | {
+      key: string;
+      name: string;
+      rarity: string;
+      owned: true;
+      level: number;
+      rank: number;
+      maxRank: number;
+      levelCap: number;
+      equipSlot: number | null;
+      power: number;
+      nextLevelCost: number | null;
+      nextRankCost: { gold: number; gems: number } | null;
+    };
+
+export interface RosterDto {
+  teamSize: number;
+  heroes: HeroDto[];
 }

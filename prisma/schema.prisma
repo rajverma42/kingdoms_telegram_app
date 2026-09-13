@@ -134,12 +134,16 @@ model HeroInventory {
 
   level      Int      @default(1)
   rank       Int      @default(1) // "star" rank
-  equippedIn Boolean  @default(false)
+  // Position (0..HERO_TEAM_SIZE-1) in the active battle team, or null if
+  // benched. Postgres treats each NULL as distinct, so any number of benched
+  // heroes can coexist, while two heroes can never hold the same slot.
+  equipSlot  Int?
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@unique([userId, heroId])
+  @@unique([userId, equipSlot])
 }
 
 // ---------- Army ----------

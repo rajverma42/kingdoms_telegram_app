@@ -28,6 +28,26 @@
   --shadow-glow: 0 0 24px rgba(224, 180, 99, 0.35);
 }
 
+/*
+  Premium Kingdom Skin: Twilight Spire (Stars purchase, tap-kingdom/client's
+  shopItems.ts / bot's products.ts, id "premium_kingdom_skin").
+  Applied by setting [data-kingdom-skin="true"] on the app root (see App.tsx)
+  when the owner has it active — every component below already themes
+  itself purely off these custom properties via var(...), so overriding them
+  here re-skins the whole app without touching a single component.
+*/
+[data-kingdom-skin="true"] {
+  --ink-950: #0c0a17;
+  --stone-900: #16132a;
+  --stone-800: #201a3a;
+  --stone-700: #2d2650;
+  --gold-400: #c79bf0;
+  --gold-500: #a877e0;
+  --ember-400: #6f8fef;
+  --ember-500: #5470e0;
+  --shadow-glow: 0 0 24px rgba(111, 143, 239, 0.4);
+}
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;

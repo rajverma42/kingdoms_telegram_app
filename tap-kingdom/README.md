@@ -125,13 +125,19 @@ cannot be exercised from a plain browser tab.
 - The full Stars shop (Featured/Heroes/Skins/Weapons/Chests/Bundles),
   10 products priced 1–50 ⭐, and the real payment flow described above
 - `/start`, `/game`, `/help`, `/support` bot commands
+- **Cosmetic re-skinning.** Owning "Premium Kingdom Skin: Twilight Spire"
+  lets you toggle a full app-wide re-theme in Settings — it works by
+  overriding a handful of CSS custom properties on `<body>`
+  (`client/src/styles/global.css`'s `[data-kingdom-skin]` rule), which every
+  component already themes itself off of, so nothing but that one root
+  attribute needs to change. Owning "Exclusive Hero Skin: Emberfall" or
+  "Premium Weapon: Dawnfang" lets you equip it to any one owned hero at a
+  time from the Heroes screen — the hero's card gets a glowing border and a
+  badge, and you're free to reassign either cosmetic to a different hero
+  whenever you like.
 
 ## What's simplified in this slice
 
-- **Cosmetics are ownership-flag only.** Premium weapons/skins/kingdom
-  skins are tracked as owned and shown as such in the Shop, but there's no
-  rendering system yet to actually reskin the UI with them — that's a
-  natural next slice once the core loop above is validated.
 - **Battle combat is a simple deterministic round simulation**, not a full
   turn-based combat UI with per-hero abilities firing individually. This
   was a deliberate scope choice to keep this pass focused and shippable;

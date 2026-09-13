@@ -18,6 +18,10 @@ export function Heroes() {
   const unlockHeroWithFragments = useGameStore((s) => s.unlockHeroWithFragments);
   const levelUpHero = useGameStore((s) => s.levelUpHero);
   const useHeroUpgradeToken = useGameStore((s) => s.useHeroUpgradeToken);
+  const equipHeroSkin = useGameStore((s) => s.equipHeroSkin);
+  const equipHeroWeapon = useGameStore((s) => s.equipHeroWeapon);
+  const ownsSkin = save.ownedCosmeticItemIds.includes("exclusive_skin");
+  const ownsWeapon = save.ownedCosmeticItemIds.includes("premium_weapon");
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -58,13 +62,27 @@ export function Heroes() {
           const level = state?.level ?? 0;
           const cap = HERO_RARITY_LEVEL_CAP[hero.rarity];
           const color = RARITY_COLOR[hero.rarity];
+          const hasSkin = save.equippedSkinHeroKey === hero.key;
+          const hasWeapon = save.equippedWeaponHeroKey === hero.key;
 
           return (
-            <div key={hero.key} className="card" style={{ borderColor: owned ? color : "var(--stone-700)" }}>
+            <div
+              key={hero.key}
+              className="card"
+              style={{
+                borderColor: owned ? color : "var(--stone-700)",
+                boxShadow: hasSkin || hasWeapon ? "var(--shadow-glow)" : undefined,
+              }}
+            >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14 }}>{hero.name}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color, marginTop: 2 }}>{hero.rarity}</div>
+                  {(hasSkin || hasWeapon) && (
+                    <div style={{ fontSize: 11, color: "var(--gold-400)", marginTop: 2 }}>
+                      {hasSkin && t("heroes.skinBadge")} {hasWeapon && t("heroes.weaponBadge")}
+                    </div>
+                  )}
                   <div style={{ fontSize: 11, color: "var(--parchment-300)", marginTop: 4, maxWidth: 220 }}>
                     <strong>{hero.abilityName}:</strong> {hero.abilityDescription}
                   </div>
@@ -96,6 +114,22 @@ export function Heroes() {
                 {owned && level < cap && save.heroUpgradeTokens > 0 && (
                   <ActionButton disabled={busyKey === hero.key} onClick={() => run(hero.key, () => useHeroUpgradeToken(hero.key))} primary>
                     {t("heroes.useToken")}
+                  </ActionButton>
+                )}
+                {owned && ownsSkin && (
+                  <ActionButton
+                    disabled={busyKey === hero.key}
+                    onClick={() => run(hero.key, () => equipHeroSkin(hasSkin ? null : hero.key))}
+                  >
+                    {hasSkin ? t("heroes.unequipSkin") : t("heroes.equipSkin")}
+                  </ActionButton>
+                )}
+                {owned && ownsWeapon && (
+                  <ActionButton
+                    disabled={busyKey === hero.key}
+                    onClick={() => run(hero.key, () => equipHeroWeapon(hasWeapon ? null : hero.key))}
+                  >
+                    {hasWeapon ? t("heroes.unequipWeapon") : t("heroes.equipWeapon")}
                   </ActionButton>
                 )}
               </div>

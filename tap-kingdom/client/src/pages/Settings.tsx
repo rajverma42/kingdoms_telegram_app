@@ -31,6 +31,9 @@ export function Settings() {
   const settings = useGameStore((s) => s.save.settings);
   const updateSettings = useGameStore((s) => s.updateSettings);
   const resetProgress = useGameStore((s) => s.resetProgress);
+  const ownsKingdomSkin = useGameStore((s) => s.save.ownedCosmeticItemIds.includes("premium_kingdom_skin"));
+  const kingdomSkinActive = useGameStore((s) => s.save.kingdomSkinActive);
+  const setKingdomSkinActive = useGameStore((s) => s.setKingdomSkinActive);
   const [confirmReset, setConfirmReset] = useState(false);
   const [infoPanel, setInfoPanel] = useState<InfoPanel>(null);
 
@@ -42,6 +45,9 @@ export function Settings() {
         <ToggleRow label={t("settings.sound")} value={settings.sound} onChange={(v) => updateSettings({ sound: v })} />
         <ToggleRow label={t("settings.music")} value={settings.music} onChange={(v) => updateSettings({ music: v })} />
         <ToggleRow label={t("settings.vibration")} value={settings.vibration} onChange={(v) => updateSettings({ vibration: v })} />
+        {ownsKingdomSkin && (
+          <ToggleRow label={t("settings.kingdomSkin")} value={kingdomSkinActive} onChange={(v) => setKingdomSkinActive(v)} />
+        )}
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontSize: 13 }}>{t("settings.language")}</span>

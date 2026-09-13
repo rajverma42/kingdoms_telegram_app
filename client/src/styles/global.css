@@ -1,0 +1,82 @@
+/*
+  Design plan (dark fantasy kingdom, not generic SaaS-dark):
+  Color:
+    --ink-950: #12100E   (near-black, warm not blue-black — parchment burnt to char)
+    --ember-500: #C9793B (banked-fire orange — used sparingly, for the one
+                          "lit torch" accent: primary CTA + energy bar)
+    --gold-400: #D8B36A  (aged gold leaf — currency, borders, headings)
+    --moss-600: #4C6B4F  (dull moss green — secondary/success states)
+    --stone-800: #262220 (panel surfaces, slightly warm charcoal)
+    --parchment-100: #E8DFCB (primary text on dark)
+  Type:
+    Display/headings: "Cinzel" (a real serif with carved-stone letterforms —
+      evokes engraved castle stonework without being a cartoon fantasy font)
+    Body/UI: "Inter" for legibility at small mobile sizes
+  Layout: single column, edge-to-edge panels with a torch-lit top bar,
+    bottom tab bar. No card-soup: buildings render as a list with inline
+    progress, not a grid of identical shadowed cards.
+  Principle: the palette itself should look "lit by one torch in a stone hall" —
+    one warm accent against otherwise desaturated stone tones.
+*/
+
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ink-950: #12100e;
+  --stone-800: #262220;
+  --stone-700: #332e2b;
+  --parchment-100: #e8dfcb;
+  --parchment-300: #b9ad95;
+  --gold-400: #d8b36a;
+  --ember-500: #c9793b;
+  --ember-600: #a85f28;
+  --moss-600: #4c6b4f;
+  --danger-500: #a84040;
+
+  --radius-md: 10px;
+  --radius-sm: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ink-950);
+  color: var(--parchment-100);
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, .display {
+  font-family: "Cinzel", serif;
+  color: var(--gold-400);
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ember-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
